@@ -1,0 +1,13 @@
+# Global settings
+border-radius=11
+border-size=2
+default-timeout=5000
+
+# Colors
+background-color=#1f1d2e
+border-color=#9ccfd8
+progress-color=over #26233a
+text-color=#e0def4
+
+[urgency=high]
+border-color=#f6c177

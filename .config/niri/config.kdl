@@ -1,0 +1,249 @@
+// Custom animations
+include "animations/glide.kdl"
+
+// QT environment variables
+environment {
+    QT_QPA_PLATFORM "wayland"
+    QT_QPA_PLATFORMTHEME "qt6ct"
+    QT_STYLE_OVERRIDE "kvantum"
+}
+
+// Input devices
+input {
+    keyboard {
+        xkb {
+            layout "us"
+            options "caps:super"
+        }
+        numlock
+    }
+}
+
+// Display outputs
+output "DP-3" {
+    mode "3840x2160@59.997"
+    scale 1
+    transform "normal"
+}
+
+// Appearance
+blur {
+    noise 0.02
+    offset 3.0
+    passes 3
+    saturation 1.5
+}
+
+overview {
+    backdrop-color "#00000099"
+}
+
+prefer-no-csd
+
+// Window layout
+layout {
+    always-center-single-column
+    background-color "transparent"
+    default-column-width { proportion 0.5; }
+    focus-ring {
+        width 2
+        active-color "#f6c177"
+        inactive-color "#1f1d2e"
+    }
+    gaps 14
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+        proportion 1.0
+    }
+}
+
+// Behaviors
+cursor {
+    hide-after-inactive-ms 3000
+}
+
+gestures {
+    hot-corners {
+        off
+    }
+}
+
+hotkey-overlay {
+    hide-not-bound
+    skip-at-startup
+}
+
+// Layer rules
+layer-rule {
+    match namespace=r#"^wallpaper$"#
+    place-within-backdrop true
+}
+
+// Window rules
+window-rule {
+    clip-to-geometry true
+    geometry-corner-radius 9
+}
+
+window-rule {
+    match app-id=r#"^org\.example\.cmus-player$"#
+    background-effect {
+        blur true
+    }
+    default-column-width { fixed 800; }
+    default-window-height { fixed 400; }
+}
+
+window-rule {
+    match app-id=r#"^firefox$"# title=r#"^Picture-in-Picture$"#
+    open-floating true
+    default-floating-position x=15 y=15 relative-to="bottom-right"
+}
+
+window-rule {
+    match app-id=r#"^firefox$"# title=r#"^(Save As|Open File)"#
+    default-column-width { fixed 990; }
+    default-window-height { fixed 660; }
+}
+
+window-rule {
+    match app-id=r#"^galculator$"#
+    default-column-width { fixed 740; }
+    default-window-height { fixed 340; }
+}
+
+window-rule {
+    match app-id=r#"^com\.mitchellh\.ghostty$"#
+    background-effect {
+        blur true
+    }
+}
+
+window-rule {
+    match app-id=r#"^org\.pulseaudio\.pavucontrol$"#
+    default-column-width { fixed 940; }
+    default-window-height { fixed 470; }
+}
+
+window-rule {
+    match app-id=r#"^xdg-desktop-portal-gtk$"#
+    default-column-width { fixed 990; }
+    default-window-height { fixed 660; }
+}
+
+// Keybinds
+binds {
+    // Power/Session
+    Mod+Alt+E hotkey-overlay-title="Log Out" { spawn-sh "$HOME/.local/bin/confirm-logout"; }
+    Mod+Alt+P hotkey-overlay-title="Shut Down" { spawn-sh "$HOME/.local/bin/confirm-shutdown"; }
+
+    // UI
+    Mod+Alt+Slash { show-hotkey-overlay; }
+    Mod+Tab { toggle-overview; }
+
+    // Application launchers
+    Mod+Return { spawn "ghostty"; }
+    Mod+Alt+C { spawn "meld"; }
+    Mod+Alt+F hotkey-overlay-title="Fuzzy Search and Launch" { spawn-sh "ghostty -e zsh -i -c f"; }
+    Mod+Alt+G { spawn "gimp" "-s"; }
+    Mod+Alt+H hotkey-overlay-title="BTOP" { spawn "ghostty" "-e" "btop"; }
+    Mod+Alt+I hotkey-overlay-title="CMUS" { spawn "ghostty" "--class=org.example.cmus-player" "-e" "cmus"; }
+    Mod+Alt+L { spawn "swaylock"; }
+    Mod+Alt+M { spawn "fuzzel"; }
+    Mod+Alt+N hotkey-overlay-title="Linux Notes" { spawn-sh "ghostty -e nvim $HOME/Documents/linuxnotes"; }
+    Mod+Alt+Q hotkey-overlay-title="Local Qwen3.8" { spawn-sh "$HOME/.local/bin/qwen-gui"; }
+    Mod+Alt+R hotkey-overlay-title="Yazi" { spawn-sh "env LAUNCH_YAZI=1 ghostty -e zsh -i"; }
+    Mod+Alt+S { spawn "pavucontrol"; }
+    Mod+Alt+T { spawn "galculator"; }
+    Mod+Alt+U { spawn "brave-origin"; }
+    Mod+Alt+V hotkey-overlay-title="Neovim" { spawn "ghostty" "-e" "nvim"; }
+    Mod+Alt+X hotkey-overlay-title="Picture Shuffle" { spawn-sh r#"zsh -c 'imv -f -t 3 $(print -l ~/Pictures/202*/*.jpg(om) | shuf)'"#; }
+    Mod+Alt+Y hotkey-overlay-title="Sandbox Firefox" { spawn "bubblejail" "run" "firefox"; }
+
+    // Layout
+    Mod+C { center-column; }
+    Mod+Ctrl+C { center-visible-columns; }
+    Mod+W { toggle-column-tabbed-display; }
+
+    // Sizing (preset)
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+Ctrl+F { expand-column-to-available-width; }
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-window-height; }
+
+    // Sizing (incremental)
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+    Mod+Shift+Minus { set-window-height "-10%"; }
+    Mod+Shift+Equal { set-window-height "+10%"; }
+
+    // Window management
+    Mod+Q { close-window; }
+    Mod+Shift+T { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+    Mod+BracketLeft  { consume-or-expel-window-left; }
+    Mod+BracketRight { consume-or-expel-window-right; }
+
+    // Focus columns & windows
+    Mod+H { focus-column-left; }
+    Mod+J { focus-window-down; }
+    Mod+K { focus-window-up; }
+    Mod+L { focus-column-right; }
+
+    Mod+Home { focus-column-first; }
+    Mod+End { focus-column-last; }
+
+    // Focus workspaces
+    Mod+U { focus-workspace-up; }
+    Mod+I { focus-workspace-down; }
+
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+
+    // Move columns & windows
+    Mod+Shift+H { move-column-left; }
+    Mod+Ctrl+J { move-window-down; }
+    Mod+Ctrl+K { move-window-up; }
+    Mod+Shift+L { move-column-right; }
+
+    Mod+Shift+Home { move-column-to-first; }
+    Mod+Shift+End { move-column-to-last; }
+
+    // Move to workspaces
+    Mod+Shift+U { move-window-to-workspace-up; }
+    Mod+Shift+I { move-window-to-workspace-down; }
+
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+
+    // Screenshots
+    Mod+F1 { screenshot-screen; }
+    Mod+F2 { screenshot-window; }
+    Mod+F3 { spawn-sh "$HOME/.local/bin/screenshot-selection"; }
+
+    // Media
+    Mod+F7 allow-when-locked=true hotkey-overlay-title="Play Previous" { spawn "playerctl" "previous"; }
+    Mod+F8 allow-when-locked=true hotkey-overlay-title="Pause" { spawn "playerctl" "play-pause"; }
+    Mod+F9 allow-when-locked=true hotkey-overlay-title="Play Next" { spawn "playerctl" "next"; }
+
+    Mod+F10 allow-when-locked=true hotkey-overlay-title="Mute" { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    Mod+F11 allow-when-locked=true hotkey-overlay-title="Volume Down" { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.03-"; }
+    Mod+F12 allow-when-locked=true hotkey-overlay-title="Volume Up" { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.03+" "-l" "1.0"; }
+}

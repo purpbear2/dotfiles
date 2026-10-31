@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Confirm shut down, launches via Super+Alt+P
+
+set -euo pipefail
+
+if GTK_THEME="Rosepine-Yellow-Dark" zenity \
+  --question \
+  --title="Shut Down" \
+  --text="Shut down the computer?" \
+  --ok-label="Shut Down" \
+  --cancel-label="Cancel"
+then
+  exec systemctl poweroff
+fi

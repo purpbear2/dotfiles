@@ -1,0 +1,50 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+     "type": "kitty",
+     "source": "~/Pictures/Icons/fox.png",
+     "padding": {
+       "top": 0,
+       "right": 2,
+       "left": 1
+     },
+     "width": 10
+  },
+  "modules": [
+    {
+      "type": "os",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "kernel",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "packages",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "wm",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "cpu",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "gpu",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    },
+    {
+      "type": "memory",
+      "keyColor": "#9ccfd8",
+      "outputColor": "#f6c177"
+    }
+  ]
+}

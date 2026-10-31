@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Confirm log out, launches via Super+Alt+E
+
+set -euo pipefail
+
+if GTK_THEME="Rosepine-Yellow-Dark" zenity \
+  --question \
+  --title="Log Out" \
+  --text="Log out of the computer?" \
+  --ok-label="Log Out" \
+  --cancel-label="Cancel"
+then
+  exec loginctl terminate-user "$USER"
+fi

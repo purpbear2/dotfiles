@@ -1,0 +1,107 @@
+return {
+  {
+    "hrsh7th/nvim-cmp",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+      "hrsh7th/cmp-cmdline",
+    },
+    config = function()
+      local cmp = require("cmp")
+
+      -- Main completion
+      cmp.setup({
+        snippet = {
+          expand = function(args)
+            vim.snippet.expand(args.body)
+          end,
+        },
+
+        mapping = cmp.mapping.preset.insert({
+          ["<C-Space>"] = cmp.mapping.complete(),
+          ["<CR>"] = cmp.mapping.confirm({ select = false }),
+          ["<C-n>"] = cmp.mapping.select_next_item(),
+          ["<C-p>"] = cmp.mapping.select_prev_item(),
+        }),
+
+        sources = cmp.config.sources({
+          { name = "nvim_lsp" },
+          { name = "path" },
+        }, {
+          { name = "buffer" },
+        }),
+      })
+
+      -- Command-line completion
+      cmp.setup.cmdline(":", {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+          { name = "path" },
+        }, {
+          { name = "cmdline" },
+        }),
+        matching = {
+          disallow_symbol_nonprefix_matching = false,
+        },
+      })
+
+      -- Search completion
+      cmp.setup.cmdline({ "/", "?" }, {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+          { name = "buffer" },
+        },
+      })
+    end,
+  },
+
+  {
+    "neovim/nvim-lspconfig",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+    },
+    config = function()
+      local capabilities = require("cmp_nvim_lsp").default_capabilities()
+
+      -- LSP completion capabilities
+      vim.lsp.config("*", {
+        capabilities = capabilities,
+      })
+
+      -- Lua / Neovim configuration
+      vim.lsp.config("lua_ls", {
+        settings = {
+          Lua = {
+            runtime = { version = "LuaJIT" },
+            diagnostics = { globals = { "vim" } },
+            workspace = {
+              checkThirdParty = false,
+              library = {
+                vim.env.VIMRUNTIME,
+              },
+            },
+          },
+        },
+      })
+
+      -- Enable language servers
+      vim.lsp.enable({
+        -- Scripting
+        "lua_ls",
+        "bashls",
+        "zls",
+
+        -- Configuration files
+        "yamlls",
+        "taplo",
+        "jsonls",
+        "marksman",
+
+        -- Containers
+        "dockerls",
+        "docker_compose_language_service",
+      })
+    end,
+  },
+}

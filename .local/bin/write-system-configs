@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# Restore backups and configure a new Arch Linux installation
+
+set -euo pipefail
+
+log()    { echo -e "\033[1;32m==> $*\033[0m"; }
+err()    { echo -e "\033[1;31mError: $*\033[0m" >&2; exit 1; }
+run()    { "$@" || err "Command failed: $*"; }
+backup() { sudo cp "$1" "$1.bak" || err "Failed to backup $1."; }
+
+# Restore user data and configuration
+log "Syncing configuration from backup..."
+run rsync -a "$HOME"/Downloads/.local/share/{bubblejail,icons,zoxide} "$HOME"/.local/share
+run rsync -a "$HOME"/Downloads/.config/{BraveSoftware,bat,dconf,Kvantum,mozilla,nextdns} "$HOME"/.config
+run rsync -a "$HOME"/Downloads/{.ssh,BrowserProfiles,Packages,Pictures,Playlists,Videos} "$HOME"
+run rsync -a --exclude "linuxnotes" "$HOME"/Downloads/Documents "$HOME"
+
+# Build bat cache
+log "Rebuilding bat syntax cache..."
+run bat cache --build
+
+# Install yazi plugins and flavors
+log "Installing Yaziline plugin..."
+run ya pkg add llanosrocas/yaziline
+
+log "Installing Yazi Rose Pine flavor..."
+run ya pkg add Mintass/rose-pine
+
+log "Installing Rose Pine for Yatline"
+ya pkg add VigneshR387/yatline-rosepine
+
+# Secure permissions
+if [ -d ~/.gnupg ]; then
+  log "Securing ~/.gnupg permissions..."
+  run chmod 700 ~/.gnupg
+fi
+
+if [ -f ~/.config/wgetrc ]; then
+  log "Securing ~/.config/wgetrc permissions..."
+  run chmod 600 ~/.config/wgetrc
+fi
+
+if [ -f ~/.config/zsh/.zsh_history ]; then
+  log "Securing ~/.config/zsh/.zsh_history permissions..."
+  run chmod 600 ~/.config/zsh/.zsh_history
+fi
+
+log "User configuration restoration complete."
+
+log "Setting GTK theme to Rose Pine Yellow Dark..."
+run gsettings set org.gnome.desktop.interface gtk-theme "Rosepine-Yellow-Dark"
+
+log "Setting GTK icon theme to Colloid Yellow Dark..."
+run gsettings set org.gnome.desktop.interface icon-theme "Colloid-Yellow-Dark"
+
+log "Enable middle-click paste..." 
+run gsettings set org.gnome.desktop.interface gtk-enable-primary-paste true
+
+# Journal size config
+log "Limiting systemd journal size to 50M..."
+run sudo mkdir -p /etc/systemd/journald.conf.d/
+run sudo tee /etc/systemd/journald.conf.d/99-journal-size.conf > /dev/null <<EOF
+[Journal]
+SystemMaxUse=50M
+EOF
+
+# PAM configuration for ZDOTDIR
+log "Configuring ZDOTDIR in pam_env.conf..."
+run backup /etc/security/pam_env.conf
+echo -e "\nZDOTDIR DEFAULT=$HOME/.config/zsh" | sudo tee -a /etc/security/pam_env.conf > /dev/null \
+  || err "Failed to append ZDOTDIR."
+
+# Set podman user subuids and docker registry search
+# log "Configuring Podman user subuids/subgids..."
+# run sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 "$USER"
+
+# log "Setting unqualified container registry search to docker.io..."
+# run sudo tee /etc/containers/registries.conf.d/99-unqualified-search-registries.conf > /dev/null <<EOF
+# unqualified-search-registries = ["docker.io"]
+# EOF
+
+log "Make HuggingFace directory"
+run mkdir -p "$HOME/.cache/huggingface"
+
+# Enable audio and system maintenance services
+log "Enabling PipeWire & WirePlumber user services..."
+run systemctl --user enable pipewire.service pipewire-pulse.service wireplumber.service
+
+# Enable the TRIM timer for flash storage
+log "Enable fstrim.timer..."
+run sudo systemctl enable --now fstrim.timer
+
+# Niri services
+log "Setting up Niri user services..."
+run systemctl --user add-wants niri.service mako.service swaybg.service swayidle.service waybar.service polkit-gnome-authentication-agent-1.service
+
+log "System configuration complete."

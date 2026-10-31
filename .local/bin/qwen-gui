@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Run local Qwen3.8 web client, launches via Super+Alt+Q
+
+set -euo pipefail
+
+log() { printf '[INFO] %s\n' "$*"; }
+error() { printf '[ERROR] %s\n' "$*" >&2; }
+
+SERVICE_NAME="qwen"
+SERVER_URL="http://127.0.0.1:8001"
+HEALTH_URL="${SERVER_URL}/health"
+MAX_WAIT=45
+SLEEP_INTERVAL=1
+LOCKFILE="${XDG_RUNTIME_DIR:?}/qwen-gui.lock"
+BROWSER_BIN="${BROWSER_BIN:-firefox}"
+
+# Cleanup handler
+cleanup() {
+  trap - EXIT
+  local exit_code=$?
+  log "Cleaning up..."
+  systemctl --user stop "$SERVICE_NAME" || true
+
+  # Remove temp profile if it exists
+  if [[ -n "${TMP_PROFILE:-}" && -d "$TMP_PROFILE" ]]; then
+    rm -rf "$TMP_PROFILE"
+  fi
+  exit "$exit_code"
+}
+
+# Trap signals for graceful shutdown
+trap cleanup EXIT SIGINT SIGTERM
+
+# Poll health endpoint until server is ready or timeout is reached
+wait_for_server() {
+  local elapsed=0
+  log "Waiting for '$SERVICE_NAME' at $HEALTH_URL"
+
+  while (( elapsed < MAX_WAIT )); do
+    if curl -sf --max-time 2 "$HEALTH_URL" >/dev/null 2>&1; then
+      log "Server ready."
+      return 0
+    fi
+
+    sleep "$SLEEP_INTERVAL"
+    elapsed=$((elapsed + SLEEP_INTERVAL))
+  done
+
+  error "Timeout after ${MAX_WAIT}s. Service may have failed to start."
+  return 1
+}
+
+main() {
+  # Prevent multiple instances
+  mkdir -p "$(dirname "$LOCKFILE")"
+  exec 9>"$LOCKFILE"
+  if ! flock -n 9; then
+    error "Script is already running. Ignoring request."
+    exit 1
+  fi
+
+  # Check if browser exists
+  if ! command -v "$BROWSER_BIN" &> /dev/null; then
+    error "Browser '$BROWSER_BIN' not found in PATH."
+    exit 1
+  fi
+
+  log "Starting $SERVICE_NAME..."
+  if ! systemctl --user start "$SERVICE_NAME"; then
+    error "Failed to start $SERVICE_NAME service."
+    exit 1
+  fi
+
+  if ! wait_for_server; then
+    exit 1
+  fi
+
+  # Create isolated temp profile
+  TMP_PROFILE=$(mktemp -d -p "${TMPDIR:-/tmp}" qwen-profile-XXXX)
+  
+  log "Launching $BROWSER_BIN (isolated)..."
+  "$BROWSER_BIN" --new-instance --profile "$TMP_PROFILE" "$SERVER_URL" \
+                 >/dev/null 2>&1 &
+  BROWSER_PID=$!
+
+  log "Waiting for browser (PID: $BROWSER_PID) to close..."
+  
+  # Monitor the PID
+  wait "$BROWSER_PID" || true 
+
+  log "Session ended."
+}
+
+main "$@"

@@ -1,0 +1,101 @@
+* {
+  border-radius: 8px;
+  font-family: "Font Awesome";
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+}
+
+window#waybar { 
+  background: rgba(31, 29, 46, .95);
+}
+
+tooltip {
+  background: #1f1d2e;
+  color: #e0def4;
+}
+
+tooltip label {
+  color: #e0def4;
+  padding: 0;
+}
+
+#custom-archicon {
+  color: #f6c177;
+  margin: 5px 4px 5px 8px;
+}
+
+#workspaces button {
+  color: #e0def4;
+}
+
+#workspaces button.active {
+  color: #9ccfd8;
+}
+
+#workspaces button.empty {
+  color: #9ccfd8;
+}
+
+#workspaces button.focused {
+  color: #eb6f92;
+}
+
+#workspaces button:hover {
+  color: #eb6f92;
+}
+
+#workspaces button.urgent {
+  background-color: #9ccfd8;
+  color: #1f1d2e;
+}
+
+.cffi-niri-windows label {
+  color: #f6c177;
+  font-size: 18px;
+  margin: 5px 0 5px 10px;
+}
+
+#tray,
+#idle_inhibitor,
+#network,
+#temperature,
+#disk,
+#cpu,
+#memory,
+#pulseaudio {
+  margin: 5px 15px 5px 10px;
+}
+
+#clock {
+  color: #9ccfd8;
+}
+
+#idle_inhibitor {
+  color: #e0def4;
+}
+
+#network {
+  color: #f6c177;
+}
+
+#temperature {
+  color: #eb6f92;
+}
+
+#disk {
+  color: #9ccfd8;
+}
+
+#cpu {
+  color: #e0def4;
+}
+
+#memory {
+  color: #f6c177;
+}
+
+#pulseaudio {
+  color: #eb6f92;
+}

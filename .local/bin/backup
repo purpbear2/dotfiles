@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Attended backup
+
+set -euo pipefail
+
+# Owner-only permissions
+umask 077
+
+# Configuration
+BACKUP_DEST="${HOME}/Downloads"
+BACKUP_NAME="backup-$(date +'%Y-%m-%d').tar.zst.age"
+outfile="${BACKUP_DEST}/${BACKUP_NAME}"
+tmpout="${outfile}.tmp"
+
+# Validate backup destination
+[[ -d "$BACKUP_DEST" && -w "$BACKUP_DEST" ]] || {
+  echo "Error: Backup destination '$BACKUP_DEST' does not exist or is not writable." >&2
+  exit 1
+}
+
+# Dependency check
+for cmd in tar zstd age; do
+  command -v "$cmd" >/dev/null || {
+    echo "Error: Required command '$cmd' not found." >&2
+    exit 1
+  }
+done
+
+# Ensure fully interactive terminal for passphrase prompt
+if [[ ! -t 0 || ! -t 1 || ! -t 2 ]]; then
+  echo "Error: Requires an interactive terminal for passphrase entry." >&2
+  exit 1
+fi
+
+# Wayland-compatible NumLock check
+check_numlock() {
+  shopt -s nullglob
+  local led_path found_any=false any_on=false
+
+  for led_path in /sys/class/leds/*:numlock/brightness; do
+    [[ -r "$led_path" ]] || continue
+    found_any=true
+    [[ "$(cat "$led_path")" != "0" ]] && any_on=true
+  done
+
+  shopt -u nullglob
+
+  if [[ "$found_any" == false ]]; then
+    echo "unknown"
+  elif [[ "$any_on" == true ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+# Wayland-only NumLock enforcement
+if [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+  numlock_status="$(check_numlock)"
+
+  case "$numlock_status" in
+    false)
+      echo "Error: NumLock is required and must be enabled in this Wayland session." >&2
+      exit 1
+      ;;
+    unknown)
+      echo "Warning: Unable to detect NumLock state via sysfs. Proceeding anyway." >&2
+      ;;
+  esac
+fi
+
+# Directories to backup relative to $HOME
+directories=(
+  ".config"
+  ".local/bin"
+  ".local/share/bubblejail"
+  ".local/share/zoxide"
+  ".ssh"
+  "BrowserProfiles"
+  "Documents"
+  "Packages"
+  "Pictures"
+  "Playlists"
+  "Videos"
+)
+
+# Validate that all required directories exist under $HOME
+for dir in "${directories[@]}"; do
+  [[ -d "$HOME/$dir" ]] || {
+    echo "Error: Required directory '$HOME/$dir' does not exist. Aborting." >&2
+    exit 1
+  }
+done
+
+# Cleanup temporary output on exit
+trap 'rm -f -- "$tmpout"' EXIT
+
+echo "Creating encrypted streaming backup..."
+
+if [[ -e "$outfile" ]]; then
+  read -rp "File '$outfile' already exists. Overwrite? [y/N] " answer
+  if [[ ! "$answer" =~ ^[Yy]$ ]]; then
+    echo "Aborting." >&2
+    exit 1
+  fi
+fi
+
+if tar -C "$HOME" \
+    -I 'zstd -T0 -1' \
+    -cf - \
+    "${directories[@]}" |
+  age -p -o "$tmpout"; then
+  :
+else
+  echo "Error: Backup pipeline failed." >&2
+  exit 1
+fi
+
+echo "Verifying archive integrity..."
+if age -d "$tmpout" | tar --zstd -tf - >/dev/null; then
+  echo "Verification passed."
+else
+  echo "Error: Archive verification failed — backup was not saved." >&2
+  exit 1
+fi
+
+mv -f -- "$tmpout" "$outfile"
+
+echo "Backup completed successfully."
+echo "Encrypted backup: $outfile"

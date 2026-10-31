@@ -1,0 +1,153 @@
+{
+    "layer": "top",
+    "margin-top": 14,
+    "position": "top",
+    "width": 1899,
+    "modules-left": [
+        "custom/archicon",
+        "niri/workspaces",
+        "cffi/niri-windows"
+    ],
+    "modules-center": [
+        "clock"
+    ],
+    "modules-right": [
+        "tray",
+        "idle_inhibitor",
+        "network",
+        "temperature",
+        "disk",
+        "cpu",
+        "memory",
+        "pulseaudio"
+    ],
+    "custom/archicon": {
+        "format": "  ",
+        "tooltip": false
+    },
+    "niri/workspaces": {
+        "on-click": "activate",
+        "disable-scroll": true,
+        "all-outputs": true,
+        "warp-on-scroll": false,
+        "format": "{icon}"
+    },
+    "cffi/niri-windows": {
+        "module_path": "/usr/lib/waybar-niri-windows.so",
+        "options": {
+            "mode": "text",
+            "show-floating": "auto",
+            "floating-position": "right",
+            "minimum-size": 1,
+            "spacing": 1,
+            "icon-minimum-size": 0,
+            "column-borders": 0,
+            "floating-borders": 0,
+            "on-tile-click": "FocusWindow",
+            "on-tile-middle-click": "CloseWindow",
+            "on-tile-right-click": "",
+            "symbols": {
+                "unfocused": "󰫣 ",
+                "focused": "󰫢 ",
+                "unfocused-floating": "∗",
+                "focused-floating": "⊛",
+                "empty": ""
+            }
+        },
+        "actions": {
+            "on-scroll-up": "FocusColumnLeft",
+            "on-scroll-down": "FocusColumnRight"
+        }
+    },
+    "clock": {
+        "format": "  {:%a, %b %d, %I:%M %p}",
+        "format-alt": "  {:%a, %b %d, %I:%M %p}",
+        "tooltip-format": "<tt><small>{calendar}</small></tt>",
+        "calendar": {
+            "mode": "month",
+            "mode-mon-col": 3,
+            "weeks-pos": "",
+            "on-scroll": 1,
+            "on-click-right": "mode",
+            "format": {
+                "months": "<span color='#f6c177'><b>{}</b></span>",
+                "days": "<span color='#e0def4'><b>{}</b></span>",
+                "weekdays": "<span color='#9ccfd8'><b>{}</b></span>",
+                "today": "<span color='#f6c177'><b><u>{}</u></b></span>"
+            }
+        },
+        "actions": {
+            "on-click": "mode",
+            "on-click-forward": "tz_up",
+            "on-click-backward": "tz_down",
+            "on-scroll-up": "shift_up",
+            "on-scroll-down": "shift_down"
+        }
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    },
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "tooltip": true,
+        "format-icons": {
+            "activated": "󰅶  Wake",
+            "deactivated": "󰾪  Idle"
+        },
+        "on-click-right": "swaylock"
+    },
+    "network": {
+        "format-wifi": "󰖩  {essid}",
+        "format-ethernet": "  {ipaddr}/{cidr}",
+        "tooltip-format": "  {ifname} via {gwaddr} {signalStrength}%",
+        "format-linked": "  {ifname} (No IP)",
+        "format-disconnected": "󰖪  Disconnected",
+        "format-alt": "{ifname}: {ipaddr}/{cidr}"
+    },
+    "temperature": {
+        "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+        "critical-threshold": 85,
+        "format": "{icon} {temperatureC}°C",
+        "format-icons": [
+            " ",
+            "",
+            " "
+        ],
+        "tooltip": false
+    },
+    "disk": {
+        "interval": 30,
+        "format": "   {percentage_free}%",
+        "tooltip": false,
+        "path": "/"
+    },
+    "cpu": {
+        "format": "  {usage}%",
+        "tooltip": false
+    },
+    "memory": {
+        "format": "  {}%",
+        "tooltip": false
+    },
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": [
+                " ",
+                " ",
+                " "
+            ],
+            "format-muted": "ﱝ Muted"
+        },
+        "on-click": "pavucontrol",
+        "scroll-step": 3,
+        "tooltip": true
+    }
+}

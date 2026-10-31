@@ -1,0 +1,50 @@
+return {
+  "catppuccin/nvim",
+  lazy = false,
+  priority = 1000,
+
+  config = function()
+    require("catppuccin").setup({
+      flavour = "mocha",
+      transparent_background = true,
+      term_colors = true,
+      integrations = {
+        nvimtree = true,
+        treesitter = true,
+      },
+
+      custom_highlights = function(colors)
+        return {
+          CursorLine = { bg = "#45475a" },
+
+          -- Ensure transparency for key plugin windows
+          NormalFloat = { bg = "none" },
+          FloatBorder = {
+            fg = "#a6e3a1",
+            bg = "none",
+          },
+
+          -- lazy.nvim transparency
+          LazyNormal = { bg = "none" },
+          LazyBorder = {
+            fg = "#a6e3a1",
+            bg = "none",
+          },
+
+          -- File explorer transparency
+          NvimTreeNormal = { bg = "none" },
+          NeoTreeNormal = { bg = "none" },
+          NeoTreeNormalNC = { bg = "none" },
+
+          -- Popup menu
+          Pmenu = { bg = "none" },
+
+          -- Status line area
+          MsgArea = { bg = "none" },
+        }
+      end,
+    })
+
+    vim.cmd("colorscheme catppuccin")
+  end,
+}

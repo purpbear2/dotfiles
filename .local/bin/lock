@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Unmount and lock LUKS volumes on /dev/sd*
+
+set -euo pipefail
+
+# Read NAME, PKNAME, and TYPE for all block devices
+while read -r name pkname type; do
+  
+  # Process LUKS/crypt devices whose parent starts with "sd"
+  if [[ "$type" == "crypt" && "$pkname" == sd* ]]; then
+    
+    mapping="/dev/mapper/$name"
+    backing="/dev/$pkname"
+
+    mountpoint=$(findmnt -rn -S "$mapping" -o TARGET || true)
+
+    if [[ -z "$mountpoint" ]]; then
+      echo "$mapping is not mounted; skipping unmount"
+    else
+      echo "Unmounting $mountpoint ($mapping)"
+      udisksctl unmount -b "$mapping"
+    fi
+
+    echo "Locking $backing"
+    udisksctl lock -b "$backing"
+    
+    echo "Done with $backing"
+  fi
+
+done < <(lsblk -rno NAME,PKNAME,TYPE)

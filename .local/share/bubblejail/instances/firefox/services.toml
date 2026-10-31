@@ -1,0 +1,36 @@
+[common]
+executable_name = "/usr/bin/firefox"
+dbus_name = "org.mozilla.*"
+
+[wayland]
+
+[home_share]
+home_paths = [
+    "Downloads",
+    ".config/mozilla",
+]
+
+[direct_rendering]
+
+[pipewire]
+
+[slirp4netns]
+
+[mpris]
+player_name = "firefox.*"
+
+[debug]
+raw_bwrap_args = [
+    "--setenv",
+    "GTK_ICON_THEME",
+    "Colloid-Yellow-Dark",
+    "--setenv",
+    "GTK_THEME",
+    "Rosepine-Yellow-Dark",
+    "--ro-bind",
+    "/home/ck/.config/gtk-3.0",
+    "/home/ck/.config/gtk-3.0",
+    "--ro-bind",
+    "/home/ck/.config/gtk-4.0",
+    "/home/ck/.config/gtk-4.0",
+]

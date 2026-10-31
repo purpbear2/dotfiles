@@ -1,0 +1,46 @@
+[Unit]
+Description=Qwen3.8 LLM Server (Llama.cpp via Podman Vulkan)
+After=network.target
+
+[Service]
+Type=exec
+WorkingDirectory=%h
+
+# Environment
+Environment=MODEL=unsloth/Qwen3.8-27B-GGUF:UD-IQ4_XS
+Environment=PORT=8001
+
+# Stop any pre-existing container with the same name before starting
+ExecStartPre=-/usr/bin/podman stop -t 10 qwen38-server
+ExecStartPre=-/usr/bin/podman rm qwen38-server
+
+# Run llama-server inside the Vulkan-enabled Podman container
+ExecStart=/usr/bin/podman run --rm --name qwen38-server \
+  -p 127.0.0.1:${PORT}:${PORT} \
+  --device /dev/dri \
+  --group-add keep-groups \
+  -v %h/.cache/huggingface:/root/.cache/huggingface \
+  ghcr.io/ggml-org/llama.cpp:server-vulkan \
+  -hf ${MODEL} \
+  --host 0.0.0.0 \
+  --port ${PORT} \
+  -c 65536 \
+  --chat-template-kwargs '{"reasoning_effort":"medium"}' \
+  -ngl 99 \
+  --temp 1.0 \
+  --top-p 0.95 \
+  --top-k 20 \
+  --min-p 0.0 \
+  --presence-penalty 0.0 \
+  --repeat-penalty 1.0
+
+# Reliability & limits
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
+LimitNPROC=65535
+MemoryHigh=20G
+MemoryMax=28G
+Nice=10
+TimeoutStopSec=60
+KillSignal=SIGINT

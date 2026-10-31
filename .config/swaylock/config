@@ -1,0 +1,43 @@
+# Rose Pine Swaylock Configuration
+
+clock
+effect-blur=7x5
+effect-vignette=0.5:0.5
+fade-in=0.2
+font-size=24
+grace=2
+screenshots
+
+# Indicator
+indicator
+indicator-radius=100
+indicator-thickness=7
+
+# Inside the indicator
+inside-clear-color=#191724e6
+inside-color=#191724e6
+inside-ver-color=#191724e6
+inside-wrong-color=#191724e6
+
+# Highlight segments
+key-hl-color=#9ccfd8
+
+# Highlight segments separator
+separator-color=#00000000
+
+# Line between the inside and ring
+line-color=#00000000
+
+# Indicator ring
+ring-caps-lock-color=#f6c177
+ring-clear-color=#ebbcba
+ring-color=#31748f
+ring-ver-color=#c4a7e7
+ring-wrong-color=#eb6f92
+
+# Text color
+text-caps-lock-color=#f6c177
+text-clear-color=#ebbcba
+text-color=#e0def4
+text-ver-color=#c4a7e7
+text-wrong-color=#eb6f92

@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Personal system setup bootstrapper
+
+set -euo pipefail
+
+# Configuration
+BASE_URL="https://github.com/purpbear2/dotfiles/raw/main/.local/bin"
+TMPSCRIPTS_DIR="${1:-$HOME/tmpscripts}"
+
+# Helpers
+log() { echo -e "\e[34m[INFO]\e[0m $1"; }
+error() { echo -e "\e[31m[ERROR]\e[0m $1" >&2; exit 1; }
+
+# Verify OS
+if [[ ! -f /etc/os-release ]] || ! grep -q '^ID=arch' /etc/os-release; then
+  error "This script must be run on Arch Linux."
+fi
+
+# Verify dependencies
+for cmd in git curl makepkg; do
+  command -v "$cmd" &>/dev/null || error "'$cmd' is required but not found."
+done
+
+# Ensure base-devel is installed
+pacman -Q base-devel &>/dev/null || error "base-devel group is required. Install with: sudo pacman -S base-devel"
+
+# Install yay-bin
+log "Installing yay-bin..."
+BUILD_DIR=$(mktemp -d)
+trap 'rm -rf "$BUILD_DIR"' EXIT
+
+git clone https://aur.archlinux.org/yay-bin "$BUILD_DIR/yay-bin" || error "Failed to clone yay-bin."
+pushd "$BUILD_DIR/yay-bin" >/dev/null
+makepkg -si --noconfirm --needed || error "Failed to build/install yay-bin."
+popd >/dev/null
+
+# Setup script directory
+log "Preparing scripts directory: $TMPSCRIPTS_DIR"
+mkdir -p "$TMPSCRIPTS_DIR"
+
+declare -A files_to_download=(
+  ["install-aur"]="aur"
+  ["install-official"]="official"
+  ["write-system-configs"]="wsc"
+)
+
+download_file() {
+  local url="$1"
+  local dest="$2"
+  local is_script="${3:-false}"
+  
+  log "Downloading $(basename "$url")..."
+  if ! curl -fsSL -o "$dest" "$url"; then
+    error "Failed to download $url"
+  fi
+  
+  if [ "$is_script" = true ]; then
+    chmod +x "$dest"
+  else
+    chmod 644 "$dest"
+  fi
+}
+
+# Download helper scripts
+for src in "${!files_to_download[@]}"; do
+  download_file "$BASE_URL/$src" "$TMPSCRIPTS_DIR/${files_to_download[$src]}" true
+done
+
+# Deploy configs
+log "Deploying personal configurations..."
+download_file "https://github.com/purpbear2/dotfiles/raw/main/Documents/linuxnotes" "$HOME/linuxnotes" false
+mkdir -p "$HOME/.config/niri/animations"
+download_file "https://github.com/purpbear2/dotfiles/raw/main/.config/niri/config.kdl" "$HOME/.config/niri/config.kdl" false
+download_file "https://github.com/purpbear2/dotfiles/raw/main/.config/niri/animations/glide.kdl" "$HOME/.config/niri/animations/glide.kdl" false
+
+log "Setup complete!"

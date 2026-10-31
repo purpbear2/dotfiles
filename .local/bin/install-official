@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+# Install official packages
+
+set -euo pipefail
+
+echo "Installing Pacman packages..."
+packages=(
+  age
+  apparmor
+  bat
+  btop
+  caligula
+  cmus
+  cronie
+  dconf-editor
+  eza
+  fastfetch
+  fd
+  ffmpeg
+  firefox
+  fuzzel
+  fzf
+  galculator
+  gcr
+  ghostty
+  gimp
+  git
+  gnome-themes-extra
+  grim
+  gvfs
+  handlr-regex
+  imagemagick
+  imv
+  kvantum
+  kvantum-qt5
+  libmad
+  libva-mesa-driver
+  libzip
+  linux-headers
+  luarocks
+  mako
+  man-db
+  meld
+  mesa
+  mpv
+  neovim
+  niri
+  noto-fonts
+  noto-fonts-emoji
+  otf-font-awesome
+  pacman-contrib
+  pam-u2f
+  pavucontrol
+  playerctl
+  podman
+  polkit-gnome
+  poppler
+  python-pillow
+  qt5-wayland
+  qt6-wayland
+  reflector
+  ripgrep
+  rsync
+  rtkit
+  sbctl
+  slirp4netns
+  slurp
+  starship
+  swaybg
+  swayidle
+  timeshift
+  tree-sitter-cli
+  ttf-cascadia-code-nerd
+  ttf-dejavu
+  ttf-nerd-fonts-symbols
+  ttf-nerd-fonts-symbols-common
+  ttf-nerd-fonts-symbols-mono
+  udisks2
+  ufw
+  unzip
+  usbutils
+  vulkan-radeon
+  waybar
+  wget
+  wl-clipboard
+  xdg-desktop-portal-gtk
+  xdg-user-dirs
+  yazi
+  zathura
+  zathura-pdf-poppler
+  zenity
+  zip
+  zoxide
+  zsh
+  zsh-autosuggestions
+  zsh-syntax-highlighting
+)
+
+sudo pacman -S --needed "${packages[@]}" || {
+  echo "Pacman packages failed to install."
+  exit 1
+}
+
+# Create default user directories
+echo "Creating user directories"
+xdg-user-dirs-update || {
+  echo "Failed to create default user directories."
+  exit 1
+}

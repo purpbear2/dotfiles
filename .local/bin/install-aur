@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Install AUR packages
+
+set -euo pipefail
+
+# Check if yay is installed
+if ! command -v yay &> /dev/null; then
+  echo "Error: Yay not found. Please install yay first."
+  exit 1
+fi
+
+echo "Installing AUR packages..."
+aur_packages=(
+  brave-origin-bin
+  bubblejail
+  colloid-icon-theme
+  relic-rosepine-gtk-theme
+  swaylock-effects-git
+  waybar-niri-windows-bin
+  yay-bin
+)
+
+yay -S "${aur_packages[@]}" || {
+  echo "Error: Failed to install AUR packages. Check yay logs."
+  exit 1
+}

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Ripgrep search, alias: rs
+# https://github.com/junegunn/fzf/blob/master/ADVANCED.md#using-fzf-as-interative-ripgrep-launcher
+
+set -euo pipefail
+
+# Check dependencies
+for cmd in rg fzf bat nvim; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: Required command '$cmd' not found in PATH." >&2
+    exit 1
+  fi
+done
+
+INITIAL_QUERY="$*"
+
+# Reject characters that could alter the shell command used by fzf
+if [[ "$INITIAL_QUERY" =~ [\'\"\$\(\)\;\|\&\`\\] ]]; then
+  echo "Error: Query contains potentially unsafe characters." >&2
+  exit 1
+fi
+
+RG_PREFIX=(
+  rg
+  --color=always
+  --column
+  --glob='!.cache'
+  --glob='!.var'
+  --glob='!BraveSoftware'
+  --glob='!BrowserProfiles'
+  --glob='!mozilla'
+  --glob='!timeshift'
+  --hidden
+  --line-number
+  --no-heading
+  --smart-case
+)
+
+# Convert the array to a shell-safe command string for fzf's reload action
+printf -v RG_CMD '%q ' "${RG_PREFIX[@]}"
+
+fzf --ansi --disabled --query "$INITIAL_QUERY" \
+  --bind "start:reload:if [[ -n {q} ]]; then $RG_CMD -- {q} || true; fi" \
+  --bind "change:reload:sleep 0.1; if [[ -n {q} ]]; then $RG_CMD -- {q} || true; fi" \
+  --delimiter : \
+  --preview 'bat --color=always --highlight-line {2} {1}' \
+  --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+  --bind 'enter:become(nvim {1} +{2})'

@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Unlock and mount an external partition
+
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  printf 'Usage: %s <device>\n' "$0" >&2
+  printf 'Example: %s a1\n' "$0" >&2
+  exit 1
+fi
+
+device_id=$1
+
+case "$device_id" in
+  a1|b1)
+    device="/dev/sd${device_id}"
+    ;;
+  *)
+    printf 'Error: device must be a1 or b1\n' >&2
+    exit 1
+    ;;
+esac
+
+printf 'Unlocking %s...\n' "$device"
+
+if ! unlock_output=$(udisksctl unlock -b "$device"); then
+  printf 'Error: failed to unlock %s\n' "$device" >&2
+  exit 1
+fi
+
+printf '%s\n' "$unlock_output"
+
+# Extract unlocked device path
+cleartext_device=$(
+  awk '/ as / {
+    sub(/\.$/, "", $NF)
+    print $NF
+  }' <<< "$unlock_output"
+)
+
+if [[ -z "$cleartext_device" ]]; then
+  printf 'Error: could not determine the unlocked device\n' >&2
+  exit 1
+fi
+
+printf 'Mounting %s...\n' "$cleartext_device"
+
+if ! udisksctl mount -b "$cleartext_device"; then
+  printf 'Error: failed to mount %s\n' "$cleartext_device" >&2
+  exit 1
+fi

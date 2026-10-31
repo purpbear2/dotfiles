@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Sync backup to external drives
+
+set -euo pipefail
+
+log() { printf '[%(%F %T)T] %s\n' -1 "$*"; }
+die() { printf '[%(%F %T)T] ERROR: %s\n' -1 "$*" >&2; exit 1; }
+
+# Args
+dry_run=0
+while getopts "dh" opt; do
+  case $opt in
+    d) dry_run=1 ;;
+    h) echo "Usage: $0 [-d]"; exit 0 ;;
+    *) echo "Usage: $0 [-d]" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND - 1))
+(( $# == 0 )) || die "Usage: $0 [-d]"
+
+prefix=""
+(( dry_run )) && prefix="[DRY-RUN] "
+
+# Source
+backup_date="$(date +%F)"
+backup_source="${HOME}/Downloads/backup-${backup_date}.tar.zst.age"
+backup_destinations=( "/run/media/ck/lex3" "/run/media/ck/lexc" )
+src_base="$(basename "$backup_source")"
+
+# Mutual exclusion
+lock_file="${TMPDIR:-/tmp}/sbk.${UID:-$(id -u)}.lock"
+exec 9>"$lock_file"
+flock -n 9 || die "Another sync is already running"
+
+# Dependency check
+missing=()
+for c in rsync flock mountpoint sha256sum stat mv rm df date numfmt; do
+  command -v "$c" >/dev/null || missing+=("$c")
+done
+(( ${#missing[@]} == 0 )) || die "Missing required command(s): ${missing[*]}"
+
+[[ -f "$backup_source" ]] || die "Source not found: $backup_source"
+
+# Source integrity baseline
+src_hash="$(sha256sum "$backup_source" | awk '{print $1}')"
+[[ -n "$src_hash" ]] || die "Failed to hash source: $backup_source"
+src_size="$(stat -c %s "$backup_source")"
+
+# Cleanup stray temp files on exit
+cleanup() {
+  for d in "${backup_destinations[@]}"; do
+    rm -f -- "$d/.${src_base}.tmp.$$"
+  done
+}
+trap cleanup EXIT INT TERM HUP
+
+# Per-destination sync
+failures=0
+dry_issues=0
+for dst in "${backup_destinations[@]}"; do
+  tmp="$dst/.${src_base}.tmp.$$"
+  final="$dst/$src_base"
+
+  if ! mountpoint -q "$dst"; then
+    log "${prefix}Unmounted: $dst"
+    (( dry_run )) && dry_issues=$((dry_issues + 1)) || failures=$((failures + 1))
+    continue
+  fi
+
+  if [[ ! -w "$dst" ]]; then
+    log "${prefix}Read-only: $dst"
+    (( dry_run )) && dry_issues=$((dry_issues + 1)) || failures=$((failures + 1))
+    continue
+  fi
+
+  avail="$(df --output=avail -B1 "$dst" | tail -1)"
+  if (( avail < src_size )); then
+    log "${prefix}Insufficient space on $dst"
+    (( dry_run )) && dry_issues=$((dry_issues + 1)) || failures=$((failures + 1))
+    continue
+  fi
+
+  if (( dry_run )); then
+    log "[DRY-RUN] Destination OK: $dst"
+    log "[DRY-RUN] Available: $(numfmt --to=iec "$avail")"
+    log "[DRY-RUN] Required:  $(numfmt --to=iec "$src_size")"
+    log "[DRY-RUN] Would copy: $backup_source"
+    log "[DRY-RUN] Would finalize: $final"
+    continue
+  fi
+
+  log "Syncing to $dst"
+
+  # Copy to hidden temp file
+  rsync -rlt --no-partial --no-compress -- "$backup_source" "$tmp" || {
+    log "Copy failed: $dst"
+    failures=$((failures + 1))
+    continue
+  }
+
+  # Verify size + hash before promoting
+  dst_hash="$(sha256sum "$tmp" | awk '{print $1}')"
+  if [[ "$(stat -c %s "$tmp")" != "$src_size" || "$dst_hash" != "$src_hash" ]]; then
+    log "Verification failed: $dst"
+    rm -f -- "$tmp"
+    failures=$((failures + 1))
+    continue
+  fi
+
+  mv -f -- "$tmp" "$final"
+  sync "$final" 2>/dev/null || true
+  log "Finalized: $final"
+done
+
+# Exit status
+if (( dry_run )); then
+  if (( dry_issues > 0 )); then
+    log "Dry run completed with $dry_issues issue(s) found"
+    exit 1
+  fi
+  log "Dry run completed successfully"
+else
+  (( failures == 0 )) || die "One or more copies failed"
+  log "Backup sync completed successfully"
+fi

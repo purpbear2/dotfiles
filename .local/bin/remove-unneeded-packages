@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Remove unneeded packages and clean caches, alias rup
+
+set -Eeuo pipefail
+IFS=$'\n\t'
+
+# Track whether any cleanup operation fails
+CLEANUP_FAILED=0
+
+# Format log messages
+log() {
+  local level="$1"
+  shift
+  printf '[%s] %s\n' "$level" "$*"
+}
+
+# Wrapper to run a command and report success or failure
+run_clean() {
+  local description="$1"
+  shift
+
+  log "INFO" "$description..."
+
+  if "$@"; then
+    log "OK" "$description"
+  else
+    log "WARN" "Failed: $description"
+    CLEANUP_FAILED=1
+  fi
+}
+
+# Ensure required commands are available
+for cmd in pacman paccache sudo; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    log "ERROR" "Required command '$cmd' not found."
+    log "INFO" "Install pacman-contrib if paccache is missing."
+    exit 1
+  fi
+done
+
+if ! sudo -v; then
+  log "ERROR" "Cannot obtain sudo privileges — aborting."
+  exit 1
+fi
+
+# Remove orphaned packages
+log "INFO" "Scanning for orphaned packages..."
+
+mapfile -t orphaned < <(pacman -Qdtq || true)
+
+if (( ${#orphaned[@]} > 0 )); then
+  run_clean "Remove orphaned packages" \
+    sudo pacman -Rns "${orphaned[@]}"
+else
+  log "INFO" "No orphaned packages found."
+fi
+
+# Remove installed packages whose names end in .debug
+log "INFO" "Scanning for *.debug packages..."
+
+mapfile -t debug_pkgs < <(
+  pacman -Qq | grep -E '\.debug$' || true
+)
+
+if (( ${#debug_pkgs[@]} > 0 )); then
+  run_clean "Remove *.debug packages" \
+    sudo pacman -Rns "${debug_pkgs[@]}"
+else
+  log "INFO" "No *.debug packages found."
+fi
+
+# Remove cached packages that are no longer installed
+run_clean "Remove cached versions of uninstalled packages" \
+  sudo paccache -ruk0
+
+# Keep the two newest cached versions of installed packages
+run_clean "Keep the two newest cached versions of installed packages" \
+  sudo paccache -rk2
+
+# Report final status
+if (( CLEANUP_FAILED )); then
+  log "WARN" "Cleanup finished with one or more errors."
+  exit 1
+fi
+
+log "OK" "All cleanup steps completed successfully."
