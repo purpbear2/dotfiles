@@ -23,11 +23,12 @@ tooltip label {
 
 #custom-archicon {
   color: #f6c177;
-  margin: 5px 4px 5px 8px;
+  margin: 5px 0 5px 8px;
 }
 
 #workspaces button {
   color: #e0def4;
+  margin: 5px 0 5px 10px;
 }
 
 #workspaces button.active {
