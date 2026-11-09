@@ -153,7 +153,6 @@ binds {
     Mod+Alt+L { spawn "swaylock"; }
     Mod+Alt+M { spawn "fuzzel"; }
     Mod+Alt+N hotkey-overlay-title="Linux Notes" { spawn-sh "ghostty -e nvim $HOME/Documents/linuxnotes"; }
-    Mod+Alt+Q hotkey-overlay-title="Local Qwen3.8" { spawn-sh "$HOME/.local/bin/qwen-gui"; }
     Mod+Alt+R hotkey-overlay-title="Yazi" { spawn-sh "env LAUNCH_YAZI=1 ghostty -e zsh -i"; }
     Mod+Alt+S { spawn "pavucontrol"; }
     Mod+Alt+T { spawn "galculator"; }
