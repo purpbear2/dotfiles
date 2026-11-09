@@ -79,8 +79,8 @@ echo -e "\nZDOTDIR DEFAULT=$HOME/.config/zsh" | sudo tee -a /etc/security/pam_en
 # unqualified-search-registries = ["docker.io"]
 # EOF
 
-log "Make HuggingFace directory"
-run mkdir -p "$HOME/.cache/huggingface"
+# log "Make HuggingFace directory"
+# run mkdir -p "$HOME/.cache/huggingface"
 
 # Enable audio and system maintenance services
 log "Enabling PipeWire & WirePlumber user services..."

@@ -52,7 +52,6 @@ packages=(
   pam-u2f
   pavucontrol
   playerctl
-  podman
   polkit-gnome
   poppler
   python-pillow
