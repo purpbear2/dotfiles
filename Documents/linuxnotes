@@ -59,8 +59,9 @@ tar -I 'zstd -T0 -1' -cf - * | age -p -o Pictures-$(date +"%Y-%m-%d").tar.zst.ag
 ######################################################################################
 ZSH GLOB QUALIFIERS
 
-imv -f -t 3  ~/Pictures/202*/*.jpg(om)
-imv -f -t 3 $(print -l ~/Pictures/202*/*.jpg(om) | shuf)
+zsh -c 'print -N ~/Pictures/202*/*.(jpg|jpeg|png)(N) | shuf -z | xargs -0 imv -f -t 3'
+zsh -c 'print -N ~/Pictures/202*/*.(jpg|jpeg|png)(N) | sort -z -r | xargs -0 imv -f -t 3'
+
 
 echo /var/log/messages*        # usual lexicographic order
 echo /var/log/messages*(On)    # reverse lexicographic order
