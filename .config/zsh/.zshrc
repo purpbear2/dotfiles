@@ -119,7 +119,7 @@ dg() {
 }
 
 # Fuzzy search and launch
-f() {
+s() {
   local file
   local preview_cmd="
     if file -b --mime-type '{}' | grep -q '^text/'; then

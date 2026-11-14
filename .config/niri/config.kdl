@@ -147,7 +147,7 @@ binds {
 
     // Application launchers
     Mod+E hotkey-overlay-title="Yazi" { spawn-sh "env LAUNCH_YAZI=1 ghostty -e zsh -i"; }
-    Mod+S hotkey-overlay-title="Fuzzy Search and Launch" { spawn-sh "ghostty -e zsh -i -c f"; }
+    Mod+S hotkey-overlay-title="Fuzzy Search and Launch" { spawn-sh "ghostty -e zsh -i -c s"; }
     Mod+Return { spawn "ghostty"; }
     Mod+Alt+A { spawn "pavucontrol"; }
     Mod+Alt+C { spawn "meld"; }
