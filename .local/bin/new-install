@@ -71,6 +71,5 @@ log "Deploying personal configurations..."
 download_file "https://github.com/purpbear2/dotfiles/raw/main/Documents/linuxnotes" "$HOME/linuxnotes" false
 mkdir -p "$HOME/.config/niri/animations"
 download_file "https://github.com/purpbear2/dotfiles/raw/main/.config/niri/config.kdl" "$HOME/.config/niri/config.kdl" false
-download_file "https://github.com/purpbear2/dotfiles/raw/main/.config/niri/animations/glide.kdl" "$HOME/.config/niri/animations/glide.kdl" false
 
 log "Setup complete!"
