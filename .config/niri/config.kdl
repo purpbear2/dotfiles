@@ -35,7 +35,7 @@ blur {
 }
 
 overview {
-    backdrop-color "#00000099"
+    backdrop-color "#000000"
 }
 
 prefer-no-csd
@@ -62,6 +62,8 @@ layout {
 // Behaviors
 cursor {
     hide-after-inactive-ms 3000
+    hide-when-typing
+    xcursor-size 24
 }
 
 gestures {
@@ -133,28 +135,28 @@ window-rule {
     default-window-height { fixed 660; }
 }
 
-// Keybinds
+// Keybindings: frequent actions use a single modifier key
 binds {
     // Power/Session
-    Mod+Alt+E hotkey-overlay-title="Log Out" { spawn-sh "$HOME/.local/bin/confirm-logout"; }
     Mod+Alt+P hotkey-overlay-title="Shut Down" { spawn-sh "$HOME/.local/bin/confirm-shutdown"; }
+    Mod+Alt+Q hotkey-overlay-title="Log Out" { spawn-sh "$HOME/.local/bin/confirm-logout"; }
 
     // UI
     Mod+Alt+Slash { show-hotkey-overlay; }
-    Mod+Tab { toggle-overview; }
+    Mod+Tab repeat=false { toggle-overview; }
 
     // Application launchers
+    Mod+E hotkey-overlay-title="Yazi" { spawn-sh "env LAUNCH_YAZI=1 ghostty -e zsh -i"; }
+    Mod+S hotkey-overlay-title="Fuzzy Search and Launch" { spawn-sh "ghostty -e zsh -i -c f"; }
     Mod+Return { spawn "ghostty"; }
+    Mod+Alt+A { spawn "pavucontrol"; }
     Mod+Alt+C { spawn "meld"; }
-    Mod+Alt+F hotkey-overlay-title="Fuzzy Search and Launch" { spawn-sh "ghostty -e zsh -i -c f"; }
     Mod+Alt+G { spawn "gimp" "-s"; }
     Mod+Alt+H hotkey-overlay-title="BTOP" { spawn "ghostty" "-e" "btop"; }
     Mod+Alt+I hotkey-overlay-title="CMUS" { spawn "ghostty" "--class=org.example.cmus-player" "-e" "cmus"; }
-    Mod+Alt+L { spawn "swaylock"; }
+    Mod+Alt+L allow-when-locked=true { spawn "swaylock"; }
     Mod+Alt+M { spawn "fuzzel"; }
     Mod+Alt+N hotkey-overlay-title="Linux Notes" { spawn-sh "ghostty -e nvim $HOME/Documents/linuxnotes"; }
-    Mod+Alt+R hotkey-overlay-title="Yazi" { spawn-sh "env LAUNCH_YAZI=1 ghostty -e zsh -i"; }
-    Mod+Alt+S { spawn "pavucontrol"; }
     Mod+Alt+T { spawn "galculator"; }
     Mod+Alt+U { spawn "brave-origin"; }
     Mod+Alt+V hotkey-overlay-title="Neovim" { spawn "ghostty" "-e" "nvim"; }
@@ -180,7 +182,7 @@ binds {
     Mod+Shift+Equal { set-window-height "+10%"; }
 
     // Window management
-    Mod+Q { close-window; }
+    Mod+Q repeat=false { close-window; }
     Mod+Shift+T { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
     Mod+BracketLeft  { consume-or-expel-window-left; }
@@ -235,7 +237,7 @@ binds {
     // Screenshots
     Mod+F1 { screenshot-screen; }
     Mod+F2 { screenshot-window; }
-    Mod+F3 { spawn-sh "$HOME/.local/bin/screenshot-selection"; }
+    Mod+F3 { spawn-sh "$HOME/.local/bin/screenshot-selection --show-pointer=false"; }
 
     // Media
     Mod+F7 allow-when-locked=true hotkey-overlay-title="Play Previous" { spawn "playerctl" "previous"; }

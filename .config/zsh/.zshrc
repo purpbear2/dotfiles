@@ -135,7 +135,7 @@ f() {
 }
 
 # Change to current working directory when exiting yazi
-r() {
+e() {
   local tmp cwd
   tmp="$(mktemp -t "yazi-cwd.XXXXXX")"
 
@@ -149,7 +149,7 @@ r() {
 
 if [[ -n "$LAUNCH_YAZI" ]]; then
   unset LAUNCH_YAZI
-  r
+  e
 fi
 
 # Prevent Unicode issues in raw TTYs
