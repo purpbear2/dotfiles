@@ -13,11 +13,12 @@ MAX_WAIT=45
 SLEEP_INTERVAL=1
 LOCKFILE="${XDG_RUNTIME_DIR:?}/qwen-gui.lock"
 BROWSER_BIN="${BROWSER_BIN:-firefox}"
+PERSISTENT_STORAGE_PREF="${PERSISTENT_STORAGE_PREF:-2}"
 
 # Cleanup handler
 cleanup() {
-  trap - EXIT
   local exit_code=$?
+  trap - EXIT
   log "Cleaning up..."
   systemctl --user stop "$SERVICE_NAME" || true
 
@@ -75,18 +76,21 @@ main() {
     exit 1
   fi
 
-  # Create isolated temp profile
+  # Create isolated temp profile and suppress persistent storage prompt
   TMP_PROFILE=$(mktemp -d -p "${TMPDIR:-/tmp}" qwen-profile-XXXX)
-  
+  cat >"$TMP_PROFILE/user.js" <<EOF
+    user_pref("permissions.default.persistent-storage", ${PERSISTENT_STORAGE_PREF});
+EOF
+
   log "Launching $BROWSER_BIN (isolated)..."
   "$BROWSER_BIN" --new-instance --profile "$TMP_PROFILE" "$SERVER_URL" \
-                 >/dev/null 2>&1 &
+    >/dev/null 2>&1 &
   BROWSER_PID=$!
 
   log "Waiting for browser (PID: $BROWSER_PID) to close..."
-  
+
   # Monitor the PID
-  wait "$BROWSER_PID" || true 
+  wait "$BROWSER_PID" || true
 
   log "Session ended."
 }

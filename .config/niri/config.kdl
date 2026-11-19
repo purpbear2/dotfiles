@@ -145,7 +145,7 @@ window-rule {
 binds {
     // Power/Session
     Mod+Alt+P repeat=false hotkey-overlay-title="Shut Down" { spawn-sh "$HOME/.local/bin/confirm-shutdown"; }
-    Mod+Alt+Q repeat=false hotkey-overlay-title="Log Out" { spawn-sh "$HOME/.local/bin/confirm-logout"; }
+    Mod+Alt+E repeat=false hotkey-overlay-title="Log Out" { spawn-sh "$HOME/.local/bin/confirm-logout"; }
 
     // UI
     Mod+Alt+Slash { show-hotkey-overlay; }
@@ -163,6 +163,7 @@ binds {
     Mod+Alt+L repeat=false { spawn "swaylock"; }
     Mod+Alt+M repeat=false { spawn "fuzzel"; }
     Mod+Alt+N repeat=false hotkey-overlay-title="Linux Notes" { spawn-sh "ghostty -e nvim $HOME/Documents/linuxnotes"; }
+    Mod+Alt+Q repeat=false hotkey-overlay-title="Local Qwen3.8" { spawn-sh "$HOME/.local/bin/qwen-gui"; }
     Mod+Alt+T repeat=false { spawn "galculator"; }
     Mod+Alt+U repeat=false { spawn "brave-origin"; }
     Mod+Alt+V repeat=false hotkey-overlay-title="Neovim" { spawn "ghostty" "-e" "nvim"; }
